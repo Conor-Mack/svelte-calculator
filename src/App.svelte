@@ -1,4 +1,6 @@
 <script>
+  import { onMount, afterUpdate } from "svelte";
+
   import Button from "./Button.svelte";
 
   const operatorMap = ["+", "-", "*", "/", "="];
@@ -9,11 +11,30 @@
   let expressionEquals = "";
   let value = "0";
 
-  let screenContainerWidth;
+  let valueElement;
+  let expressionWidth;
+  let screen;
+  let expressionElement;
+
   let equalsWidth;
   let expWidth;
   let margin = 4;
   let maxCharWidth = 0;
+
+  function scrollIntoView() {
+    console.log("Scrolling", screen.scrollWidth);
+    screen.scrollTo(expressionWidth, 0);
+  }
+
+  onMount(() => {
+    // scrollIntoView();
+  });
+
+  afterUpdate(() => {
+    if (screen.scrollWidth > expressionWidth) {
+      scrollIntoView();
+    }
+  });
 
   function isValidExpression(exp) {
     return /^(?:\d+[+\-*/]|\d+\.\d+[+\-*/]|\-\d+[+\-*/]|\.\d+[+\-*/])+(?:\.\d+|\d+|\d+\.\d+)$/.test(
@@ -91,19 +112,6 @@
     }
   }
 
-  $: expressionWidth = !!equalsWidth
-    ? expWidth - margin + (equalsWidth - margin)
-    : expWidth - margin;
-
-  $: {
-    if (expressionWidth >= screenContainerWidth && maxCharWidth === 0) {
-      maxCharWidth = expression.length;
-      console.log("MAX CHARS", maxCharWidth);
-    } else {
-      maxCharWidth = 0;
-    }
-  }
-
   $: lastCharIsOperator = operatorMap.includes(
     expression[expression.length - 1]
   );
@@ -149,7 +157,7 @@
     align-items: center;
   }
 
-  main {
+  /* main {
     display: grid;
     grid-template-rows: 85px 1fr;
     grid-gap: 10px;
@@ -159,11 +167,22 @@
     border: 2px solid #808090;
     margin-top: -40px;
     padding: 10px;
-    /* box-shadow: 0px 5px 1px 2px #808090; */
+    box-shadow: 1px 2px 9px 2px #808090;
+  } */
+
+  main {
+    display: flex;
+    flex-direction: column;
+    width: 550px;
+    height: 700px;
+    margin-top: -40px;
+    padding: 10px;
+    background: #cdd1d4;
+    border: 2px solid #808090;
     box-shadow: 1px 2px 9px 2px #808090;
   }
 
-  .screen-container {
+  /* .screen-container {
     display: grid;
     border: 2px solid #808090;
     background: #ffffff;
@@ -175,23 +194,92 @@
 
   .screen-container > div:last-child {
     grid-column: 1 / -1;
+  } */
+
+  /* .screen-container {
+    display: flex;
+    flex-flow: column nowrap;
+    border: 2px solid #808090;
+    background: #ffffff;
+    border-radius: 5px;
+    overflow-x: hidden;
+    width: 550px;
   }
 
-  .screen-container > div {
+  .expression-screen {
+    display: flex;
+    flex-flow: row nowrap;
+    flex: 1;
+    width: 550px;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .expression-screen > div {
+    border: 1px solid green;
     display: flex;
     justify-content: flex-end;
     align-items: center;
   }
 
+  .expression {
+    flex: 1;
+  }
+
+  .evaluation {
+    flex: 0 0 20px;
+  } */
+
+  .screen {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    width: 550px;
+    /* height: 90px; */
+    overflow-y: hidden;
+    border: 2px solid red;
+    background: #ffffff;
+    overflow-x: scroll;
+  }
+
+  .expression {
+    flex: 1;
+    text-align: end;
+    display: flex;
+    flex-flow: row nowrap;
+    width: 550px;
+  }
+
+  .expression-text {
+    flex: 1;
+    border: 1px solid purple;
+  }
+
+  .expression-sum {
+    flex: 0 0 50px;
+    border: 1px solid green;
+  }
+
+  .value {
+    flex: 1 1 1px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-self: flex-end;
+    border: 1px solid green;
+  }
+
   .button-container {
+    margin-top: 10px;
+    flex: 1 1 auto;
     display: grid;
     grid-gap: 5px;
     grid-template-columns: 3fr 1fr;
   }
-
-  /* .button-container > div {
-    border: 1px solid blue;
-  } */
 
   .action-buttons {
     display: grid;
@@ -232,25 +320,28 @@
 
 <div class="container">
   <main>
-    <div bind:clientWidth={screenContainerWidth} class="screen-container">
-      <div class="expression-screen">
-        <div bind:clientWidth={expWidth}>
+
+    <div bind:this={screen} class="screen">
+      <div
+        bind:this={expressionElement}
+        bind:clientWidth={expressionWidth}
+        class="expression">
+        <div class="expression-text">
           <h4>
             {@html expressionWithEntities}
           </h4>
         </div>
+        <div class="expression-sum">
+          <h4>{equalsPressed ? `=` : `= ${roundedEquals}`}</h4>
+        </div>
+
       </div>
-      <div class="equals-screen">
-        {#if !!expressionEquals}
-          <div id="EQUALS-WIDTH" bind:clientWidth={equalsWidth}>
-            <h4>{equalsPressed ? `=` : `= ${roundedEquals}`}</h4>
-          </div>
-        {/if}
+      <div bind:this={valueElement} class="value">
+        <h1>{!!equalsPressed ? value : expressionEquals}</h1>
       </div>
-      <div class="current-value-screen">
-        <h1>{equalsPressed ? roundedEquals : value}</h1>
-      </div>
+
     </div>
+
     <div class="button-container">
 
       <div class="action-buttons">
