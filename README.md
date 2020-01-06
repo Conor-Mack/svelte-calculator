@@ -1,6 +1,6 @@
 # Basic Calculator
 
-Steps
+## Steps
 
 1. Git clone
 2. Open cmd in root of project
