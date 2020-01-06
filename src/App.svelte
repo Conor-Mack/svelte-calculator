@@ -7,37 +7,27 @@
   const numericalMap = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."];
 
   let equalsPressed = false;
-  let expression = "";
+  let expression = "12+-15+";
   let expressionEquals = "";
   let value = "0";
 
-  let valueElement;
-  let expressionWidth;
   let screen;
-  let expressionElement;
-
-  let equalsWidth;
-  let expWidth;
-  let margin = 4;
-  let maxCharWidth = 0;
-
-  function scrollIntoView() {
-    console.log("Scrolling", screen.scrollWidth);
-    screen.scrollTo(expressionWidth, 0);
-  }
-
-  onMount(() => {
-    // scrollIntoView();
-  });
 
   afterUpdate(() => {
-    if (screen.scrollWidth > expressionWidth) {
-      scrollIntoView();
-    }
+    handleScreenScroll();
   });
 
+  function handleScreenScroll() {
+    if (screen.scrollWidth > 550) {
+      screen.style.overflowX = "scroll";
+      screen.scrollTo(screen.scrollWidth, 0);
+    } else {
+      screen.style.overflowX = "auto";
+    }
+  }
+
   function isValidExpression(exp) {
-    return /^(?:\d+[+\-*/]|\d+\.\d+[+\-*/]|\-\d+[+\-*/]|\.\d+[+\-*/])+(?:\.\d+|\d+|\d+\.\d+)$/.test(
+    return /^(?:\d+[+\-*\/]|\d+\.\d+[+\-*\/]|\-\d+[+\-*\/]|\.\d+[+\-*\/])+(?:(?<=[\+\*\/])\-\d+|\.\d+|\d+|\d+\.\d+)$/.test(
       exp
     );
   }
@@ -55,14 +45,35 @@
 
   function onBackKeyPress() {
     clearEqualsPressed();
-    if (expression.length >= 1) {
-      expression = expression.substring(0, expression.length - 1);
-    }
 
-    if (value.length > 1) {
-      value = value.substring(0, value.length - 1);
-    } else if (value.length === 1 && value !== "0") {
-      value = "0";
+    if (expression.length > 1 && isValidOperator) {
+      //remove last char
+      expression = expression.substring(0, expression.length - 1);
+
+      //check if there is more in the expression
+      if (expression.length > 1) {
+        let opsInExpression = expression.match(/\+|\-|\*|\//g);
+        let valueFromExp;
+
+        //Check that expression only has one complete number and no other  operators
+        if (
+          !!opsInExpression &&
+          (opsInExpression.length === 1 && expression[0] === "-")
+        ) {
+          value = expression;
+        } else {
+          value = expression.match(/(\-\d+$|\d+$)/g)[0];
+        }
+      } else {
+        value = expression;
+      }
+    } else {
+      if (value.length > 1) {
+        value = value.substring(0, value.length - 1);
+      } else {
+        value = "0";
+      }
+      expression = expression.substring(0, expression.length - 1);
     }
   }
 
@@ -112,6 +123,8 @@
     }
   }
 
+  $: isValidOperator = /(?<![\*\/\+\-])[\*\/\+\-]$/.test(expression);
+
   $: lastCharIsOperator = operatorMap.includes(
     expression[expression.length - 1]
   );
@@ -157,19 +170,6 @@
     align-items: center;
   }
 
-  /* main {
-    display: grid;
-    grid-template-rows: 85px 1fr;
-    grid-gap: 10px;
-    width: 550px;
-    height: 700px;
-    background: #cdd1d4;
-    border: 2px solid #808090;
-    margin-top: -40px;
-    padding: 10px;
-    box-shadow: 1px 2px 9px 2px #808090;
-  } */
-
   main {
     display: flex;
     flex-direction: column;
@@ -182,95 +182,45 @@
     box-shadow: 1px 2px 9px 2px #808090;
   }
 
-  /* .screen-container {
-    display: grid;
-    border: 2px solid #808090;
-    background: #ffffff;
-    border-radius: 5px;
-    grid-template-columns: 1fr auto;
-    grid-template-rows: 35px 1fr;
-    overflow-x: hidden;
-  }
-
-  .screen-container > div:last-child {
-    grid-column: 1 / -1;
-  } */
-
-  /* .screen-container {
-    display: flex;
-    flex-flow: column nowrap;
-    border: 2px solid #808090;
-    background: #ffffff;
-    border-radius: 5px;
-    overflow-x: hidden;
-    width: 550px;
-  }
-
-  .expression-screen {
-    display: flex;
-    flex-flow: row nowrap;
-    flex: 1;
-    width: 550px;
-    overflow-x: scroll;
-    overflow-y: hidden;
-    justify-content: flex-end;
-    align-items: center;
-  }
-
-  .expression-screen > div {
-    border: 1px solid green;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  }
-
-  .expression {
-    flex: 1;
-  }
-
-  .evaluation {
-    flex: 0 0 20px;
-  } */
-
   .screen {
     flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-end;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: 30px auto;
     width: 550px;
-    /* height: 90px; */
+    height: 85px;
+    border: 2px solid #808090;
+    border-radius: 5px;
     overflow-y: hidden;
-    border: 2px solid red;
-    background: #ffffff;
     overflow-x: scroll;
+    background: #ffffff;
   }
 
-  .expression {
-    flex: 1;
+  ::-webkit-scrollbar {
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #a0a3a7;
+    border-radius: 10px;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  .exp-text {
     text-align: end;
-    display: flex;
-    flex-flow: row nowrap;
-    width: 550px;
   }
 
-  .expression-text {
-    flex: 1;
-    border: 1px solid purple;
-  }
-
-  .expression-sum {
-    flex: 0 0 50px;
-    border: 1px solid green;
-  }
-
-  .value {
-    flex: 1 1 1px;
-    display: flex;
-    flex-flow: row nowrap;
-    justify-content: flex-end;
-    align-self: flex-end;
-    border: 1px solid green;
+  .val {
+    text-align: end;
+    grid-column: 1 / -1;
   }
 
   .button-container {
@@ -301,43 +251,27 @@
   }
 </style>
 
-<!-- 
-
-  TODO:Add fonts for buttons and screen
-  TODO:General sizing and responsiveness
-  TODO:General colour and shape of calculator
-
-  == NICE TO HAVES ==
-  TODO:Animations for expression and value display
-  TODO:Animations for screen outline if wronng syntax entered
-
-  ==BUGS==
-  TODO: Fix regex to allow minus numbers at start
-
-
- -->
 <svelte:window on:keydown={handleKeyPresses} />
 
 <div class="container">
   <main>
 
     <div bind:this={screen} class="screen">
-      <div
-        bind:this={expressionElement}
-        bind:clientWidth={expressionWidth}
-        class="expression">
-        <div class="expression-text">
-          <h4>
-            {@html expressionWithEntities}
-          </h4>
-        </div>
-        <div class="expression-sum">
-          <h4>{equalsPressed ? `=` : `= ${roundedEquals}`}</h4>
-        </div>
 
+      <div class="exp-text">
+        <h4>
+          {@html expressionWithEntities}
+        </h4>
       </div>
-      <div bind:this={valueElement} class="value">
-        <h1>{!!equalsPressed ? value : expressionEquals}</h1>
+      <div class="exp-sum">
+        {#if equalsPressed}
+          <h4>=</h4>
+        {:else if !!expressionEquals}
+          <h4>{`= ${roundedEquals}`}</h4>
+        {/if}
+      </div>
+      <div class="val">
+        <h1>{equalsPressed ? expressionEquals : value}</h1>
       </div>
 
     </div>
