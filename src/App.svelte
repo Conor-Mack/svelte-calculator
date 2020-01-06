@@ -7,7 +7,7 @@
   const numericalMap = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."];
 
   let equalsPressed = false;
-  let expression = "12+-15+";
+  let expression = "";
   let expressionEquals = "";
   let value = "0";
 
