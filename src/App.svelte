@@ -50,7 +50,7 @@
       //remove last char
       expression = expression.substring(0, expression.length - 1);
 
-      //check if there is more in the expression
+      //Another check to make sure the expression stll has multiple chars after initial removal
       if (expression.length > 1) {
         let opsInExpression = expression.match(/\+|\-|\*|\//g);
         let valueFromExp;
