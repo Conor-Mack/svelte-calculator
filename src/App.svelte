@@ -123,6 +123,7 @@
     }
   }
 
+  //test
   $: isValidOperator = /(?<![\*\/\+\-])[\*\/\+\-]$/.test(expression);
 
   $: lastCharIsOperator = operatorMap.includes(
