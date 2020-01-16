@@ -165,7 +165,7 @@
     flex-flow: row nowrap;
     width: 100%;
     height: 100%;
-    background: #c1deba;
+    background: #ffddab;
     justify-content: center;
     align-items: center;
   }
